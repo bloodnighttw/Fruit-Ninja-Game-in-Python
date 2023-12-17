@@ -17,10 +17,7 @@ clock = pygame.time.Clock()
 
 # Define colors
 WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
 RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
 
 background = pygame.image.load('back.jpg')  # game background
 font = pygame.font.Font(os.path.join(os.getcwd(), 'comic.ttf'), 42)
@@ -35,9 +32,9 @@ smurf = pygame.mixer.Sound('sound/smurf.wav')
 
 
 # Generalized structure of the fruit Dictionary
-def generate_random_fruits(fruit):
-    fruit_path = "images/" + fruit + ".png"
-    data[fruit] = {
+def generate_random_fruits2data(name):
+    fruit_path = "images/" + name + ".png"
+    data[name] = {
         'img': pygame.image.load(fruit_path),
         'x': random.randint(100, 500),  # where the fruit should be positioned on x-coordinate
         'y': 800,
@@ -56,7 +53,7 @@ def decrease_live(x, y):
     gameDisplay.blit(pygame.image.load("images/red_lives.png"), (x, y))
 
 
-def draw_text(display, text, size, x, y):
+def draw_text(text, size, x, y):
     fonts = pygame.font.Font(font_name, size)
     text_surface = fonts.render(text, True, WHITE)
     text_rect = text_surface.get_rect()
@@ -68,7 +65,7 @@ def draw_text(display, text, size, x, y):
 def draw_lives(display, x, y, lives, image):
     for i in range(lives):
         img = pygame.image.load(image)
-        img_rect = img.get_rect()  # gets the (x,y) coordinates of the cross icons (lives on the the top rightmost side)
+        img_rect = img.get_rect()  # gets the (x,y) coordinates of the cross icons (lives on the top rightmost side)
         img_rect.x = int(x + 35 * i)  # sets the next cross icon 35pixels awt from the previous one
         img_rect.y = y  # takes care of how many pixels the cross icon should be positioned from top of the screen
         display.blit(img, img_rect)
@@ -78,11 +75,11 @@ def draw_lives(display, x, y, lives, image):
 def handle_gameover(game_over):
     global player_lives, score
     gameDisplay.blit(background, (0, 0))
-    draw_text(gameDisplay, "TEAM WORK", 90, WIDTH / 2, HEIGHT / 4)
+    draw_text("TEAM WORK", 90, WIDTH / 2, HEIGHT / 4)
     if not game_over:
-        draw_text(gameDisplay, "Score : " + str(score), 50, WIDTH / 2, HEIGHT / 2)
+        draw_text("Score : " + str(score), 50, WIDTH / 2, HEIGHT / 2)
 
-    draw_text(gameDisplay, "Press a key to begin!", 64, WIDTH / 2, HEIGHT * 3 / 4)
+    draw_text("Press a key to begin!", 64, WIDTH / 2, HEIGHT * 3 / 4)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -100,14 +97,13 @@ def handle_hit(value, key, game_over, current_position):
     global score, player_lives, score_text
     value['x'] += value['speed_x']  # moving the fruits in x-coordinates
     value['y'] += value['speed_y']  # moving the fruits in y-coordinate
-    value['speed_y'] += (1 * value['acceleration'])  # increasing y-corrdinate
+    value['speed_y'] += (1 * value['acceleration'])  # increasing y-coordinate
     value['acceleration'] += 0.3  # increasing speed_y for next loop
 
     if value['y'] <= 800:
-        gameDisplay.blit(value['img'],
-                         (value['x'], value['y']))  # displaying the fruit inside screen dynamically
+        gameDisplay.blit(value['img'], (value['x'], value['y']))  # displaying the fruit inside screen dynamically
     else:
-        generate_random_fruits(key)
+        generate_random_fruits2data(key)
 
     if not value['hit'] and value['x'] < current_position[0] < value['x'] + 90 \
             and value['y'] < current_position[1] < value['y'] + 90:
@@ -124,7 +120,6 @@ def handle_hit(value, key, game_over, current_position):
             # window should be reset
             if player_lives == 0:
                 handle_gameover(game_over)
-                game_over = True
 
             half_fruit_path = "images/explosion.png"
         else:
@@ -140,7 +135,7 @@ def handle_hit(value, key, game_over, current_position):
 
 
 def draw_point(pos):
-    global gameDisplay, BLUE
+    global gameDisplay
     pygame.draw.circle(gameDisplay, RED, pos, 18, 5)
 
 
@@ -173,7 +168,7 @@ def run_game():
             if value['throw']:
                 handle_hit(value, key, game_over, current_position)
             else:
-                generate_random_fruits(key)
+                generate_random_fruits2data(key)
 
         pygame.display.update()
         clock.tick(FPS)
@@ -185,6 +180,6 @@ def run_game():
 
 data = {}
 for fruit in fruits:
-    generate_random_fruits(fruit)
+    generate_random_fruits2data(fruit)
 
 run_game()
