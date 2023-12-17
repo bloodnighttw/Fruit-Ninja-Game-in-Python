@@ -2,17 +2,17 @@ import pygame
 import os
 import random
 
-player_lives = 3  # keep track of lives
-score = 0  # keeps track of score
-fruits = ['melon', 'orange', 'pomegranate', 'guava', 'bomb']  # entities in the game
+player_lives = 3
+score = 0
+fruits = ['melon', 'orange', 'pomegranate', 'guava', 'bomb']
 
 # initialize pygame and create window
 WIDTH = 800
 HEIGHT = 500
-FPS = 30  # controls how often the gameDisplay should refresh. In our case, it will refresh every 1/5th second
+FPS = 30
 pygame.init()
 pygame.display.set_caption('Fruit-Ninja Game in Python -- GetProjects.org')
-gameDisplay = pygame.display.set_mode((WIDTH, HEIGHT))  # setting game display size
+gameDisplay = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
 # Define colors
