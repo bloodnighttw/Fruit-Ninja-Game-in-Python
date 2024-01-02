@@ -39,6 +39,41 @@ explode = pygame.mixer.Sound('sound/explode.wav')
 smurf = pygame.mixer.Sound('sound/smurf.wav')
 
 
+def do_nothing():
+    pass
+
+def test():
+    print("test")
+
+class Scheduler:
+    do_nothing()
+    timer = 10
+
+    def __init__(self, func, timer):
+        self.timer = timer
+        self.func = func
+
+    def tick(self):
+        if self.timer == 0:
+            self.func()
+            return True
+        self.timer -= 1
+        return False
+
+
+sch = []
+
+
+def handle_scheduler():
+    global sch
+    next_tick_sch = []
+    for index,value in enumerate(sch):
+        remove_it = value.tick()
+        if not remove_it:
+            next_tick_sch.append(value)
+
+    sch = next_tick_sch
+
 def generate_random_fruits(fruit):
     fruit_path = "images/" + fruit + ".png"
     data[fruit] = {
@@ -87,6 +122,7 @@ def handle_gameover(first_round):
     pygame.display.flip()
     waiting = True
     while waiting:
+        handle_scheduler()
         clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -153,12 +189,10 @@ def run_game():
         game_over = True  # terminates the game While loop if more than 3-Bombs are cut
         game_running = True  # used to manage the game loop
         while game_running:
-            if game_over:
-                if first_round:
-                    handle_gameover(first_round)
-                    first_round = False
+            if game_over or first_round:
+                handle_gameover(first_round)
+                first_round = False
                 game_over = False
-                draw_lives(690, 5, player_lives, 'images/red_lives.png')
 
             for event in pygame.event.get():
                 # checking for closing window
@@ -194,6 +228,9 @@ def run_game():
             current_position = (x, y)  # gets the current coordinate (x, y) in pixels of the mouse
             draw_point(current_position)
 
+            if 600 >= x >= 400 >= y >= 300:
+                sch.append(Scheduler(func=test,timer=30))
+
             for key, value in data.items():
                 if value['throw']:
                     handle_hit(value, key, game_over, current_position)
@@ -201,6 +238,7 @@ def run_game():
                     generate_random_fruits(key)
 
             pygame.display.update()
+            handle_scheduler()
             clock.tick(FPS)
     cap.release()
     cv2.destroyAllWindows()
@@ -210,5 +248,7 @@ def run_game():
 data = {}
 for fruit in fruits:
     generate_random_fruits(fruit)
+# 先生成資料
+
 
 run_game()
