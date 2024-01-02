@@ -179,7 +179,6 @@ def immutable_bomb_for_5_sec():
 def lock(func):
     waiting = True
     while waiting:
-        handle_scheduler()
         clock.tick(FPS)
         waiting = func()
 
