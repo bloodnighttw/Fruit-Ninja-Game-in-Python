@@ -42,8 +42,10 @@ smurf = pygame.mixer.Sound('sound/smurf.wav')
 def do_nothing():
     pass
 
+
 def test():
     print("test")
+
 
 class Scheduler:
     do_nothing()
@@ -67,12 +69,13 @@ sch = []
 def handle_scheduler():
     global sch
     next_tick_sch = []
-    for index,value in enumerate(sch):
+    for index, value in enumerate(sch):
         remove_it = value.tick()
         if not remove_it:
             next_tick_sch.append(value)
 
     sch = next_tick_sch
+
 
 def generate_random_fruits(fruit):
     fruit_path = "images/" + fruit + ".png"
@@ -88,8 +91,25 @@ def generate_random_fruits(fruit):
     }
 
 
-def decrease_live(x, y):
-    gameDisplay.blit(pygame.image.load("images/red_lives.png"), (x, y))
+live_pos = [
+    (725, 15),
+    (760, 15),
+    (785, 15)
+]
+
+
+def increase_live():
+    global player_lives
+    remove_lives()
+    player_lives += 1
+    draw_lives()
+
+
+def decrease_live():
+    global player_lives
+    remove_lives()
+    player_lives -= 1
+    draw_lives()
 
 
 #
@@ -101,10 +121,17 @@ def draw_text(text, size, x, y):
     gameDisplay.blit(text_surface, text_rect)
 
 
+def remove_lives():
+    for i in live_pos:
+        gameDisplay.blit(pygame.image.load("images/red_lives.png"), i)
+
+
 # 畫生命
-def draw_lives(x, y, lives, image):
-    for i in range(lives):
-        img = pygame.image.load(image)
+def draw_lives():
+    x = 690
+    y = 15
+    for i in range(player_lives):
+        img = pygame.image.load('images/red_lives.png')
         img_rect = img.get_rect()
         img_rect.x = int(x + 35 * i)
         img_rect.y = y
@@ -149,14 +176,11 @@ def handle_hit(value, key, game_over, current_position):
             and value['y'] < current_position[1] < value['y'] + 90:
         if key == 'bomb':
             explode.play()
-            player_lives -= 1
+            decrease_live()
+
             if player_lives == 0:
                 handle_gameover(game_over)
                 game_over = True
-            elif player_lives == 1:
-                decrease_live(725, 15)
-            elif player_lives == 2:
-                decrease_live(760, 15)
 
             half_fruit_path = "images/explosion.png"
         else:
@@ -201,7 +225,7 @@ def run_game():
 
             gameDisplay.blit(background, (0, 0))
             gameDisplay.blit(score_text, (0, 0))
-            draw_lives(690, 5, player_lives, 'images/red_lives.png')
+            draw_lives()
 
             ret, img = cap.read()
             if not ret:
@@ -229,7 +253,7 @@ def run_game():
             draw_point(current_position)
 
             if 600 >= x >= 400 >= y >= 300:
-                sch.append(Scheduler(func=test,timer=30))
+                sch.append(Scheduler(func=test, timer=30))
 
             for key, value in data.items():
                 if value['throw']:
