@@ -100,6 +100,17 @@ live_pos = [
 ]
 
 
+def reset_speed():
+    global FPS
+    FPS = 30
+
+
+def decrease_speed():
+    global FPS
+    FPS = 5
+    sch.append(Scheduler(timer=5 * FPS, func=reset_speed))
+
+
 def increase_live():
     global player_lives
     if player_lives >= 3:
