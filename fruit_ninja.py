@@ -101,6 +101,9 @@ live_pos = [
 
 def increase_live():
     global player_lives
+    if player_lives >= 3:
+        print("[ERROR] max health 3")
+        return
     remove_lives()
     player_lives += 1
     draw_lives()
@@ -261,9 +264,6 @@ def run_game():
             x = 800 - x
             current_position = (x, y)  # gets the current coordinate (x, y) in pixels of the mouse
             draw_point(current_position)
-
-            if 600 >= x >= 400 >= y >= 300:
-                sch.append(Scheduler(func=test, timer=30))
 
             for key, value in data.items():
                 if value['throw']:
