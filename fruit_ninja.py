@@ -303,7 +303,7 @@ def run_game():
             draw_point(current_position)
 
             if (200, 100) <= current_position <= (600, 400):
-                pass # test function here
+                pass    # test function here
 
             for key, value in data.items():
                 if value['throw']:
