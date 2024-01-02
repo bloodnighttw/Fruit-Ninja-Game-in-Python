@@ -31,12 +31,13 @@ BLUE = (0, 0, 255)
 background = pygame.image.load('back.jpg')
 font = pygame.font.Font(os.path.join(os.getcwd(), 'comic.ttf'), 42)
 score_text = font.render('Score : ' + str(score), True, (255, 255, 255))
-lives_icon = pygame.image.load('images/white_lives.png')
 
 font_name = pygame.font.match_font('comic.ttf')
 
 explode = pygame.mixer.Sound('sound/explode.wav')
 smurf = pygame.mixer.Sound('sound/smurf.wav')
+
+data = {}
 
 
 def do_nothing():
@@ -128,17 +129,33 @@ def remove_lives():
 
 # 畫生命
 def draw_lives():
-    x = 690
-    y = 15
     for i in range(player_lives):
         img = pygame.image.load('images/red_lives.png')
         img_rect = img.get_rect()
-        img_rect.x = int(x + 35 * i)
-        img_rect.y = y
+        img_rect.x = int(690 + 35 * i)
+        img_rect.y = 15
         gameDisplay.blit(img, img_rect)
 
 
-def handle_gameover(first_round):
+# func 是中止lock的條件 True代表繼續lock False代表結束lock
+def lock(func):
+    waiting = True
+    while waiting:
+        handle_scheduler()
+        clock.tick(FPS)
+        waiting = func()
+
+
+def game_over_key_handle():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            exit(0)
+        if event.type == pygame.KEYUP:
+            return False
+    return True
+
+
+def handle_game_start_end(first_round):
     global player_lives, score
     gameDisplay.blit(background, (0, 0))
     draw_text("TEAM WORK", 90, WIDTH / 2, HEIGHT / 4)
@@ -147,17 +164,11 @@ def handle_gameover(first_round):
 
     draw_text("Press a key to begin!", 64, WIDTH / 2, HEIGHT * 3 / 4)
     pygame.display.flip()
-    waiting = True
-    while waiting:
-        handle_scheduler()
-        clock.tick(FPS)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-            if event.type == pygame.KEYUP:
-                waiting = False
+    lock(game_over_key_handle)
     player_lives = 3  # reset player live
     score = 0
+    for fruit in fruits:
+        generate_random_fruits(fruit)
 
 
 def handle_hit(value, key, game_over, current_position):
@@ -179,8 +190,7 @@ def handle_hit(value, key, game_over, current_position):
             decrease_live()
 
             if player_lives == 0:
-                handle_gameover(game_over)
-                game_over = True
+                handle_game_start_end(False)
 
             half_fruit_path = "images/explosion.png"
         else:
@@ -214,7 +224,7 @@ def run_game():
         game_running = True  # used to manage the game loop
         while game_running:
             if game_over or first_round:
-                handle_gameover(first_round)
+                handle_game_start_end(first_round)
                 first_round = False
                 game_over = False
 
@@ -269,10 +279,5 @@ def run_game():
     pygame.quit()
 
 
-data = {}
-for fruit in fruits:
-    generate_random_fruits(fruit)
-# 先生成資料
-
-
-run_game()
+if __name__ == '__main__':
+    run_game()
