@@ -36,6 +36,7 @@ font_name = pygame.font.match_font('comic.ttf')
 
 explode = pygame.mixer.Sound('sound/explode.wav')
 smurf = pygame.mixer.Sound('sound/smurf.wav')
+bomb_immutable = False
 
 data = {}
 
@@ -95,7 +96,7 @@ def generate_random_fruits(fruit):
 live_pos = [
     (725, 15),
     (760, 15),
-    (785, 15)
+    (795, 15)
 ]
 
 
@@ -140,6 +141,17 @@ def draw_lives():
         gameDisplay.blit(img, img_rect)
 
 
+def reset_bomb_immutable():
+    global bomb_immutable
+    bomb_immutable = False
+
+
+def immutable_bomb_for_5_sec():
+    global bomb_immutable
+    bomb_immutable = True
+    sch.append(Scheduler(timer=5 * FPS, func=reset_bomb_immutable))
+
+
 # func 是中止lock的條件 True代表繼續lock False代表結束lock
 def lock(func):
     waiting = True
@@ -174,7 +186,7 @@ def handle_game_start_end(first_round):
         generate_random_fruits(fruit)
 
 
-def handle_hit(value, key, game_over, current_position):
+def handle_obj(key, value, current_position):
     global score, player_lives, score_text
     value['x'] += value['speed_x']
     value['y'] += value['speed_y']
@@ -186,7 +198,8 @@ def handle_hit(value, key, game_over, current_position):
     else:
         generate_random_fruits(key)
 
-    if not value['hit'] and value['x'] < current_position[0] < value['x'] + 90 \
+    if not bomb_immutable and \
+            not value['hit'] and value['x'] < current_position[0] < value['x'] + 90 \
             and value['y'] < current_position[1] < value['y'] + 90:
         if key == 'bomb':
             explode.play()
@@ -267,7 +280,7 @@ def run_game():
 
             for key, value in data.items():
                 if value['throw']:
-                    handle_hit(value, key, game_over, current_position)
+                    handle_obj(key, value, current_position)
                 else:
                     generate_random_fruits(key)
 
