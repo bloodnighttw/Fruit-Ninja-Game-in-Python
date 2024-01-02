@@ -11,6 +11,8 @@ mp_hands = mp.solutions.hands  # mediapipe 偵測手掌方法
 player_lives = 3
 score = 0
 fruits = ['melon', 'orange', 'pomegranate', 'guava', 'bomb']
+bomb_immutable = False
+score_point = 1
 
 # initialize pygame and create window
 WIDTH = 800
@@ -36,7 +38,6 @@ font_name = pygame.font.match_font('comic.ttf')
 
 explode = pygame.mixer.Sound('sound/explode.wav')
 smurf = pygame.mixer.Sound('sound/smurf.wav')
-bomb_immutable = False
 
 data = {}
 
@@ -98,6 +99,17 @@ live_pos = [
     (760, 15),
     (795, 15)
 ]
+
+
+def reset_score_point():
+    global score_point
+    score_point = 1
+
+
+def increase_score_point():
+    global score_point
+    score_point += 1
+    sch.append(Scheduler(timer=5 * FPS, func=reset_score_point))
 
 
 def reset_speed():
@@ -182,7 +194,7 @@ def game_over_key_handle():
 
 
 def handle_game_start_end(first_round):
-    global player_lives, score
+    global player_lives, score, bomb_immutable, score_point
     gameDisplay.blit(background, (0, 0))
     draw_text("TEAM WORK", 90, WIDTH / 2, HEIGHT / 4)
     if not first_round:
@@ -195,6 +207,9 @@ def handle_game_start_end(first_round):
     score = 0
     for fruit in fruits:
         generate_random_fruits(fruit)
+    sch.clear()
+    bomb_immutable = False
+    score_point = 1
 
 
 def handle_obj(key, value, current_position):
@@ -227,7 +242,7 @@ def handle_obj(key, value, current_position):
         value['img'] = pygame.image.load(half_fruit_path)
         value['speed_x'] += 10
         if key != 'bomb':
-            score += 1
+            score += score_point
         score_text = font.render('Score : ' + str(score), True, (255, 255, 255))
         value['hit'] = True
 
@@ -239,7 +254,6 @@ def draw_point(pos):
 
 def run_game():
     cap = cv2.VideoCapture(1)
-    # , cv2.CAP_DSHOW
     with mp_hands.Hands(
             model_complexity=0,
             min_detection_confidence=0.5,
