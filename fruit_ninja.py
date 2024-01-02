@@ -302,6 +302,9 @@ def run_game():
             current_position = (x, y)  # gets the current coordinate (x, y) in pixels of the mouse
             draw_point(current_position)
 
+            if (200, 100) <= current_position <= (600, 400):
+                pass # test function here
+
             for key, value in data.items():
                 if value['throw']:
                     handle_obj(key, value, current_position)
