@@ -169,6 +169,7 @@ def reset_bomb_immutable():
     bomb_immutable = False
 
 
+# 免疫炸彈五秒鐘
 def immutable_bomb_for_5_sec():
     global bomb_immutable
     bomb_immutable = True
@@ -183,6 +184,7 @@ def lock(func):
         waiting = func()
 
 
+# 遊戲開始/結束 暫停的條件
 def game_over_key_handle():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -192,6 +194,7 @@ def game_over_key_handle():
     return True
 
 
+# 處理遊戲開始/結束
 def handle_game_start_end(first_round):
     global player_lives, score, bomb_immutable, score_point
     gameDisplay.blit(background, (0, 0))
@@ -211,6 +214,7 @@ def handle_game_start_end(first_round):
     score_point = 1
 
 
+# 物件位置的更新以及與刀子碰撞的處理
 def handle_obj(key, value, current_position):
     global score, player_lives, score_text
     value['x'] += value['speed_x']
@@ -246,7 +250,8 @@ def handle_obj(key, value, current_position):
         value['hit'] = True
 
 
-def draw_point(pos):
+# 畫刀子
+def draw_knife(pos):
     global gameDisplay, BLUE
     pygame.draw.circle(gameDisplay, RED, pos, 18, 5)
 
@@ -300,10 +305,10 @@ def run_game():
             cv2.imshow('cam', img)
             x = 800 - x
             current_position = (x, y)  # gets the current coordinate (x, y) in pixels of the mouse
-            draw_point(current_position)
+            draw_knife(current_position)
 
             if (200, 100) <= current_position <= (600, 400):
-                pass    # test function here
+                pass  # test function here
 
             for key, value in data.items():
                 if value['throw']:
