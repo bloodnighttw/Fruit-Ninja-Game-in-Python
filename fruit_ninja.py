@@ -12,6 +12,7 @@ player_lives = 3
 score = 0
 fruits = ['melon', 'orange', 'pomegranate', 'guava', 'bomb']
 bomb_immutable = False
+has_skill = False
 score_point = 1
 
 # initialize pygame and create window
@@ -30,7 +31,18 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-background = pygame.image.load('back.jpg')
+initial_background = pygame.image.load('images/background.jpg')
+background = initial_background
+
+immutable_background = pygame.image.load('images/immutable.jpg')
+immutable_background = pygame.transform.scale(immutable_background, (800, 500))
+
+increase_score_background = pygame.image.load('images/increase_score.jpg')
+increase_score_background = pygame.transform.scale(increase_score_background, (800, 500))
+
+decrease_speed_background = pygame.image.load('images/decrease_speed.jpg')
+decrease_speed_background = pygame.transform.scale(decrease_speed_background, (800, 500))
+
 font = pygame.font.Font(os.path.join(os.getcwd(), 'comic.ttf'), 42)
 score_text = font.render('Score : ' + str(score), True, (255, 255, 255))
 
@@ -38,6 +50,9 @@ font_name = pygame.font.match_font('comic.ttf')
 
 explode = pygame.mixer.Sound('sound/explode.wav')
 smurf = pygame.mixer.Sound('sound/smurf.wav')
+cave = pygame.mixer.Sound('sound/immutable.wav')
+lava = pygame.mixer.Sound('sound/increase_score.wav')
+space = pygame.mixer.Sound('sound/decrease_speed.wav')
 
 data = {}
 
@@ -102,24 +117,36 @@ live_pos = [
 
 
 def reset_score_point():
-    global score_point
+    global score_point, has_skill, background
     score_point = 1
+    has_skill = False
+    background = initial_background
 
 
 def increase_score_point():
-    global score_point
+    global score_point, has_skill
+    if has_skill:
+        return
+    has_skill = True
     score_point += 1
+    lava.play()
     sch.append(Scheduler(timer=5 * FPS, func=reset_score_point))
 
 
 def reset_speed():
-    global FPS
+    global FPS, has_skill, background
     FPS = 30
+    has_skill = False
+    background = initial_background
 
 
 def decrease_speed():
-    global FPS
+    global FPS, has_skill
+    if has_skill:
+        return
+    has_skill = True
     FPS = 5
+    space.play()
     sch.append(Scheduler(timer=5 * FPS, func=reset_speed))
 
 
@@ -140,7 +167,6 @@ def decrease_live():
     draw_lives()
 
 
-#
 def draw_text(text, size, x, y):
     fonts = pygame.font.Font(font_name, size)
     text_surface = fonts.render(text, True, WHITE)
@@ -165,16 +191,42 @@ def draw_lives():
 
 
 def reset_bomb_immutable():
-    global bomb_immutable
+    global bomb_immutable, has_skill, background
     bomb_immutable = False
+    has_skill = False
+    print(f"reset {bomb_immutable}")
+    background = initial_background
 
 
 # 免疫炸彈五秒鐘
 def immutable_bomb_for_5_sec():
-    global bomb_immutable
+    global bomb_immutable, has_skill
+    if has_skill:
+        return
+    has_skill = True
     bomb_immutable = True
+    # 播放音效
+    cave.play()
     sch.append(Scheduler(timer=5 * FPS, func=reset_bomb_immutable))
 
+# 施放技能的畫面展示
+def show_immutable_bomb():
+    global background
+    if has_skill:
+        # 切換背景
+        background = immutable_background
+
+def show_increase_speed():
+    global background
+    if has_skill:
+        # 切換背景
+        background = increase_score_background
+
+def show_decrease_speed():
+    global background
+    if has_skill:
+        # 切換背景
+        background = decrease_speed_background
 
 # func 是中止lock的條件 True代表繼續lock False代表結束lock
 def lock(func):
@@ -227,22 +279,24 @@ def handle_obj(key, value, current_position):
     else:
         generate_random_fruits(key)
 
-    if not bomb_immutable and \
-            not value['hit'] and value['x'] < current_position[0] < value['x'] + 90 \
+    if  not value['hit'] and value['x'] < current_position[0] < value['x'] + 90 \
             and value['y'] < current_position[1] < value['y'] + 90:
+        half_fruit_path = value['img']
         if key == 'bomb':
-            explode.play()
-            decrease_live()
+            if not bomb_immutable:
+                explode.play()
+                decrease_live()
+                half_fruit_path = pygame.image.load("images/explosion.png")
+
 
             if player_lives == 0:
                 handle_game_start_end(False)
 
-            half_fruit_path = "images/explosion.png"
         else:
             smurf.play()
-            half_fruit_path = "images/" + "half_" + key + ".png"
+            half_fruit_path = pygame.image.load("images/" + "half_" + key + ".png")
 
-        value['img'] = pygame.image.load(half_fruit_path)
+        value['img'] = (half_fruit_path)
         value['speed_x'] += 10
         if key != 'bomb':
             score += score_point
@@ -257,7 +311,7 @@ def draw_knife(pos):
 
 
 def run_game():
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     with mp_hands.Hands(
             model_complexity=0,
             min_detection_confidence=0.5,
@@ -307,8 +361,10 @@ def run_game():
             current_position = (x, y)  # gets the current coordinate (x, y) in pixels of the mouse
             draw_knife(current_position)
 
+            # skill test
             if (200, 100) <= current_position <= (600, 400):
-                pass  # test function here
+                decrease_speed()
+                show_decrease_speed()
 
             for key, value in data.items():
                 if value['throw']:
@@ -326,3 +382,4 @@ def run_game():
 
 if __name__ == '__main__':
     run_game()
+
